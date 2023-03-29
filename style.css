@@ -1,0 +1,53 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: rgb(99, 96, 96);
+    display: grid;
+    place-items: center;
+}
+
+h1 {
+    margin: 50px 0 50px 0;
+    font-size: 3rem;
+}
+
+input {
+    margin-bottom: 20px;
+    padding: 5px;
+    font-size: 1.2rem;
+}
+
+button {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+}
+
+img {
+    width: 30px;
+}
+
+#cont {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    border: 2px solid red;
+    /* height: 180px; */
+    /* width: 50vh; */
+    /* height: 50vh; */
+}
+
+.btn {
+    font-size: 2rem;
+    width: 100px;
+    height: 100px;
+    color: white;
+    cursor: pointer;
+    margin: 0;
+    background-color: rgb(78, 79, 80);
+}
+
+.btn:hover {
+    background-color: rgb(45, 46, 47);
+}

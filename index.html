@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tilt+Warp&display=swap" rel="stylesheet">
+
+</head>
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        background-color: rgb(255, 255, 255);
+        display: grid;
+        place-items: center;
+        font-family: 'Tilt Warp', cursive;
+    }
+
+    h1 {
+        margin: 50px 0 50px 0;
+        font-size: 5rem;
+        color: rgb(32, 183, 93);
+        -webkit-text-stroke: .5px black;
+    }
+
+    input {
+        margin-bottom: 20px;
+        padding: 5px;
+        font-size: 1.2rem;
+    }
+
+    button {
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+    }
+
+    img {
+        width: 30px;
+    }
+
+    #cont {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+
+    .btn {
+
+        font-size: 2rem;
+        width: 100px;
+        height: 100px;
+        cursor: pointer;
+        margin: 0;
+        background-color: rgb(206, 203, 203);
+        border-radius: 10px;
+
+    }
+
+    #find {
+        font-size: 1.5rem;
+        color: white;
+        cursor: pointer;
+        padding: 7px;
+        border-radius: 10px;
+        width: 250px;
+        background-color: rgb(0, 0, 0);
+    }
+
+    .btn:hover {
+        background-color: rgb(226, 228, 230);
+    }
+
+    button.enabled {
+        opacity: 1;
+    }
+
+    p {
+        font-size: 2rem;
+    }
+</style>
+
+<body>
+
+    <h1>Tic-Tac-Toe</h1>
+
+
+    <div style="display: flex; width: 95vw; position: relative;">
+        <p id="userCont">You : <span id="user"></span></p>
+        <p style="position: absolute; right: 0;" id="oppNameCont">Opponent : <span id="oppName"></span></p>
+
+    </div>
+    <br>
+    <p id="valueCont">You are plaing as <span id="value"></span></p>
+    <br>
+    <p id="whosTurn">X's Turn</p>
+    <div>
+        <p style="font-size: 1.2rem;" id="enterName">Enter your name : </p>
+
+        <input type="text" placeholder="Name" id="name" autocomplete="off">
+    </div>
+    <button id="find">Search for a player</button>
+    <img id="loading" src="loading.gif" alt="">
+
+    <div id="bigcont">
+        <div id="cont">
+
+            <button id="btn1" class="btn"></button>
+            <button id="btn2" class="btn"></button>
+            <button id="btn3" class="btn"></button>
+            <button id="btn4" class="btn"></button>
+            <button id="btn5" class="btn"></button>
+            <button id="btn6" class="btn"></button>
+            <button id="btn7" class="btn"></button>
+            <button id="btn8" class="btn"></button>
+            <button id="btn9" class="btn"></button>
+        </div>
+    </div>
+
+
+</body>
+<script src="/socket.io/socket.io.js"></script>
+
+
+<script>
+    document.getElementById("loading").style.display = "none"
+    document.getElementById("bigcont").style.display = "none"
+    document.getElementById("userCont").style.display = "none"
+    document.getElementById("oppNameCont").style.display = "none"
+    document.getElementById("valueCont").style.display = "none"
+    document.getElementById("whosTurn").style.display = "none"
+
+    const socket = io();
+
+    let name;
+
+    document.getElementById('find').addEventListener("click", function () {
+        name = document.getElementById("name").value
+        document.getElementById("user").innerText = name
+        if (name == null || name == '') {
+            alert("Please enter a name")
+        }
+        else {
+
+            socket.emit("find", { name: name })
+
+            document.getElementById("loading").style.display = "block"
+            document.getElementById("find").disabled = true;
+
+        }
+    })
+
+
+
+    socket.on("find", (e) => {
+
+
+        let allPlayersArray = e.allPlayers
+        console.log("html",allPlayersArray)
+
+        if (name != '') {
+            document.getElementById("userCont").style.display = "block"
+            document.getElementById("oppNameCont").style.display = "block"
+            document.getElementById("valueCont").style.display = "block"
+            document.getElementById("loading").style.display = "none"
+            document.getElementById("name").style.display = "none"
+            document.getElementById("find").style.display = "none"
+            document.getElementById("enterName").style.display = "none"
+            document.getElementById("bigcont").style.display = "block"
+            document.getElementById("whosTurn").style.display = "block"
+            document.getElementById("whosTurn").innerText = "X's Turn"
+
+        }
+
+        let oppName
+        let value
+
+        const foundObject = allPlayersArray.find(obj => obj.p1.p1name == `${name}` || obj.p2.p2name == `${name}`);
+        foundObject.p1.p1name == `${name}` ? oppName = foundObject.p2.p2name : oppName = foundObject.p1.p1name
+        foundObject.p1.p1name == `${name}` ? value = foundObject.p1.p1value : value = foundObject.p2.p2value
+
+        document.getElementById("oppName").innerText = oppName
+        document.getElementById("value").innerText = value
+
+
+    })
+
+    document.querySelectorAll(".btn").forEach(e => {
+        e.addEventListener("click", function () {
+            let value = document.getElementById("value").innerText
+            e.innerText = value
+
+            socket.emit("playing", { value: value, id: e.id, name: name })
+
+        })
+    })
+
+    socket.on("playing", (e) => {
+        const foundObject = (e.allPlayers).find(obj => obj.p1.p1name == `${name}` || obj.p2.p2name == `${name}`);
+
+        p1id = foundObject.p1.p1move
+        p2id = foundObject.p2.p2move
+
+        if ((foundObject.sum) % 2 == 0) {
+            document.getElementById("whosTurn").innerText = "O's Turn"
+        }
+        else {
+            document.getElementById("whosTurn").innerText = "X's Turn"
+        }
+
+        if (p1id != '') {
+            document.getElementById(`${p1id}`).innerText = "X"
+            document.getElementById(`${p1id}`).disabled = true
+            document.getElementById(`${p1id}`).style.color = "black"
+        }
+        if (p2id != '') {
+            document.getElementById(`${p2id}`).innerText = "O"
+            document.getElementById(`${p2id}`).disabled = true
+            document.getElementById(`${p2id}`).style.color = "black"
+        }
+
+        check(name, foundObject.sum)
+
+
+    })
+
+    function check(name, sum) {
+
+
+        document.getElementById("btn1").innerText == '' ? b1 = "a" : b1 = document.getElementById("btn1").innerText
+        document.getElementById("btn2").innerText == '' ? b2 = "b" : b2 = document.getElementById("btn2").innerText
+        document.getElementById("btn3").innerText == '' ? b3 = "c" : b3 = document.getElementById("btn3").innerText
+        document.getElementById("btn4").innerText == '' ? b4 = "d" : b4 = document.getElementById("btn4").innerText
+        document.getElementById("btn5").innerText == '' ? b5 = "e" : b5 = document.getElementById("btn5").innerText
+        document.getElementById("btn6").innerText == '' ? b6 = "f" : b6 = document.getElementById("btn6").innerText
+        document.getElementById("btn7").innerText == '' ? b7 = "g" : b7 = document.getElementById("btn7").innerText
+        document.getElementById("btn8").innerText == '' ? b8 = "h" : b8 = document.getElementById("btn8").innerText
+        document.getElementById("btn9").innerText == '' ? b9 = "i" : b9 = document.getElementById("btn9").innerText
+
+
+        if ((b1 == b2 && b2 == b3) || (b4 == b5 && b5 == b6) || (b7 == b8 && b8 == b9) || (b1 == b4 && b4 == b7) || (b2 == b5 && b5 == b8) || (b3 == b6 && b6 == b9) || (b1 == b5 && b5 == b9) || (b3 == b5 && b5 == b7)) {
+
+            socket.emit("gameOver", { name: name })
+
+            setTimeout(() => {
+
+                sum % 2 == 0 ? alert("X WON !!") : alert("O WON !!")
+
+                setTimeout(() => {
+                    location.reload()
+
+                }, 2000)
+
+            }, 100)
+
+        }
+
+        else if (sum == 10) {
+            socket.emit("gameOver", { name: name })
+
+            setTimeout(() => {
+
+                alert("DRAW!!")
+
+                setTimeout(() => {
+                    location.reload()
+
+                }, 2000)
+
+            }, 100)
+        }
+    }
+
+
+
+</script>
+
+</html>
